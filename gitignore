@@ -1,0 +1,6 @@
+# Exclude data and large artifacts
+data/*.csv
+mlruns/
+mlflow.db
+__pycache__/
+.env
