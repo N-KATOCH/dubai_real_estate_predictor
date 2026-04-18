@@ -3,21 +3,32 @@ on:
   push:
     branches: [ main ]
   schedule:
-    - cron: '0 0 * * 0' # Runs every Sunday 
-
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
 
 jobs:
   train-and-monitor:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.9'
+          
       - name: Install dependencies
         run: pip install -r requirements.txt
+        
       - name: Run Monitoring
         run: python src/monitor.py
+        
       - name: Run Training
         run: python src/train.py
+
+      # --- THIS IS THE NEW PART TO SAVE YOUR RESULTS ---
+      - name: Upload Drift Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dubai-real-estate-reports
+          path: reports/data_drift_report.html
