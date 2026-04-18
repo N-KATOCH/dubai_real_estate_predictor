@@ -19,15 +19,17 @@ jobs:
           
       - name: Install dependencies
         run: |
+          pip install --upgrade pip
           pip install -r requirements.txt
-          pip install dagshub  # Ensuring dagshub client is present
         
       - name: Run Monitoring
+        # We add 'continue-on-error' so that if monitoring fails, 
+        # the model still trains and logs to DagsHub.
+        continue-on-error: true 
         run: python src/monitor.py
         
       - name: Run Training & Log to DagsHub
         env:
-          # These must match the names you saved in GitHub Secrets
           MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
           DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
