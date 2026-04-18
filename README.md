@@ -1,5 +1,7 @@
 # 🏙️ Dubai Real Estate Valuation AI (XAI + MLOps)
 
+![MLOps Pipeline](https://github.com/N-KATOCH/dubai_real_estate_predictor/actions/workflows/main.yml/badge.svg)
+
 An end-to-end Machine Learning system designed to predict property prices in Dubai with high accuracy (96%+) while providing transparent, dirham-based explanations for every valuation.
 
 ## 🚀 Business Impact
