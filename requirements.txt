@@ -1,0 +1,19 @@
+# Data & Math
+pandas
+numpy
+scikit-learn
+
+# The "Brain" (Model)
+lightgbm
+
+# The "Explainers" (XAI)
+shap
+
+# The "Conveyor Belt" (MLOps)
+mlflow
+
+# The "Health Monitor" (Monitoring)
+evidently
+
+# Helper for NLP logic
+nltk
