@@ -3,7 +3,14 @@ import numpy as np
 import mlflow
 import mlflow.sklearn
 import shap
-from preprocessing import prepare_silver_layer  # Importing your modular logic
+
+
+import sys
+import os
+# Add the 'src' directory to the path so Python can find preprocessing
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
+
+from preprocessing import prepare_silver_layer
 
 def run_training_pipeline(data_path):
     # 1. Start MLflow Experiment
