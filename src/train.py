@@ -6,46 +6,47 @@ from sklearn.ensemble import RandomForestRegressor
 import sys
 import os
 
-# 1. FIX PATHING: Ensure the script can find preprocessing.py
-current_dir = os.path.dirname(__file__)
+# 1. Bulletproof Pathing
+current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
-from preprocessing import prepare_silver_layer
+try:
+    from preprocessing import prepare_silver_layer
+except ImportError as e:
+    print(f"❌ Error importing preprocessing: {e}")
+    sys.exit(1)
 
 def run_training_pipeline(data_path):
-    # 2. Setup MLflow
+    print(f"📂 Checking for data at: {data_path}")
+    if not os.path.exists(data_path):
+        print(f"❌ DATA NOT FOUND! Current directory: {os.getcwd()}")
+        sys.exit(1)
+
+    # 2. Local MLflow Setup
+    mlflow.set_tracking_uri("file:./mlruns")
     mlflow.set_experiment("Dubai_Real_Estate_Valuation")
     
     with mlflow.start_run(run_name="Production_Run"):
-        # 3. Load Data
-        if not os.path.exists(data_path):
-            raise FileNotFoundError(f"Missing data file at {data_path}")
-            
+        # 3. Load & Process
         df = pd.read_csv(data_path)
+        print("✅ Data Loaded Successfully")
         
-        # 4. Run your Silver Layer logic
         df_processed = prepare_silver_layer(df)
+        print("✅ Preprocessing Complete")
         
-        # 5. Create a 'Placeholder' model so MLflow doesn't crash
-        # We use a simple model just to prove the pipeline works
-        X = df_processed[['size']].values
+        # 4. Train with Safety Checks
+        X = df_processed[['size']].values.reshape(-1, 1) # Ensure 2D array
         y = df_processed['price'].values
-        model = RandomForestRegressor(n_estimators=10).fit(X, y)
         
-        print("🚀 Model trained on Dubai Property Sample...")
+        model = RandomForestRegressor(n_estimators=10)
+        model.fit(X, y)
+        print("✅ Model Trained")
         
-        # 6. Log Metrics & Model
-        mlflow.log_metric("accuracy_baseline", 0.96)
-        
-        # Use the actual model object here
-        mlflow.sklearn.log_model(
-            sk_model=model, 
-            artifact_path="valuation_model",
-            registered_model_name="Dubai_Property_Pricer"
-        )
-        
-        print("✅ Success! Metrics and Model logged to MLflow.")
+        # 5. Log
+        mlflow.log_metric("sample_size", len(df))
+        mlflow.sklearn.log_model(model, "valuation_model")
+        print("🚀 Successfully Logged to MLflow!")
 
 if __name__ == "__main__":
-    # 7. TRIGGER: This line MUST be active for GitHub Actions to work
+    # Ensure this matches your folder: data/raw_data.csv
     run_training_pipeline("data/raw_data.csv")
