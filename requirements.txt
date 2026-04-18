@@ -13,7 +13,7 @@ shap
 mlflow
 
 # The "Health Monitor" (Monitoring)
-evidently
+evidently==0.4.7
 
 # Helper for NLP logic
 nltk
