@@ -23,11 +23,15 @@ jobs:
       - name: Run Monitoring
         run: python src/monitor.py
         
-      - name: Run Training
+      - name: Run Training & Log to DagsHub
+        env:
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+          # This tells MLflow to send data to DagsHub instead of a local folder
+          MLFLOW_TRACKING_URI: https://dagshub.com/${{ secrets.DAGSHUB_USERNAME }}/dubai_real_estate_predictor.mlflow
         run: python src/train.py
 
-      # --- THIS IS THE NEW PART TO SAVE YOUR RESULTS ---
-      - name: Upload Drift Report
+      - name: Upload Drift Report to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: dubai-real-estate-reports
