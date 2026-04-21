@@ -24,7 +24,7 @@ def generate_dubai_data(n=1000):
         
         data.append({
             'id': i + 1,
-            'neighborhood': nb,
+            'neighborhood': nb, # THE MISSING COLUMN
             'size': size,
             'price': price,
             'description': f"Beautiful property in {nb}"
@@ -32,16 +32,17 @@ def generate_dubai_data(n=1000):
         
     df = pd.DataFrame(data)
     
-    # Force the path to be the absolute project root/data/raw_data.csv
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    data_dir = os.path.join(project_root, 'data')
-    os.makedirs(data_dir, exist_ok=True)
+    # Force the path to the root 'data' folder
+    os.makedirs('data', exist_ok=True)
+    file_path = 'data/raw_data.csv'
     
-    file_path = os.path.join(data_dir, 'raw_data.csv')
     df.to_csv(file_path, index=False)
     
-    print(f"🔥 GENERATOR SUCCESS: Created {len(df)} rows at {file_path}")
-    print(f"📊 New Columns: {df.columns.tolist()}")
+    if os.path.exists(file_path):
+        print(f"✅ SUCCESS: Generated {len(df)} rows with columns: {df.columns.tolist()}")
+    else:
+        print("❌ CRITICAL ERROR: Could not save the file!")
+        exit(1)
 
 if __name__ == "__main__":
     generate_dubai_data()
