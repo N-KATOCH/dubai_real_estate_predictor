@@ -19,19 +19,12 @@ def generate_dubai_data(n=1000):
         
     df = pd.DataFrame(data)
     
-    # 🛠️ NEW: Use absolute path to project root
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(current_dir)
-    data_dir = os.path.join(project_root, 'data')
+    # Ensure folder exists
+    os.makedirs('data', exist_ok=True)
     
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
-        print(f"📁 Created directory at: {data_dir}")
-    
-    file_path = os.path.join(data_dir, 'raw_data.csv')
-    df.to_csv(file_path, index=False)
-    
-    print(f"✅ Data Generated: {df.shape[0]} rows saved to {file_path}")
+    # Save file
+    df.to_csv('data/raw_data.csv', index=False)
+    print(f"✅ SUCCESSFULLY SAVED 1000 ROWS TO data/raw_data.csv")
 
 if __name__ == "__main__":
     generate_dubai_data()
