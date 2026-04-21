@@ -14,15 +14,21 @@ def generate_dubai_data(n=1000):
     for i in range(n):
         nb = np.random.choice(list(neighborhoods.keys()))
         size = np.random.randint(500, 5000)
+        # Price = (Size * Base PSF) + 10% random noise
         price = int(size * neighborhoods[nb] * (1 + np.random.normal(0, 0.1)))
         data.append({'id': i+1, 'neighborhood': nb, 'size': size, 'price': price})
         
     df = pd.DataFrame(data)
     
-    # Force creation in the workspace root
-    os.makedirs('data', exist_ok=True)
-    df.to_csv('data/raw_data.csv', index=False)
-    print(f"✅ Data Generated: {df.shape[0]} rows with columns {df.columns.tolist()}")
+    # 🛠️ THE FIX: Create the 'data' directory if it doesn't exist
+    if not os.path.exists('data'):
+        os.makedirs('data')
+        print("📁 Created 'data' directory")
+    
+    file_path = 'data/raw_data.csv'
+    df.to_csv(file_path, index=False)
+    
+    print(f"✅ Data Generated: {df.shape[0]} rows saved to {file_path}")
 
 if __name__ == "__main__":
     generate_dubai_data()
