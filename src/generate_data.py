@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 
 def generate_dubai_data(n=1000):
     np.random.seed(42)
@@ -23,7 +24,7 @@ def generate_dubai_data(n=1000):
         size = np.random.randint(500, 5000)
         
         # Price = (Size * Base PSF) + some random market noise
-        noise = np.random.normal(0, 0.1) # 10% market variation
+        noise = np.random.normal(0, 0.1) 
         price = int(size * avg_psf * (1 + noise))
         
         data.append({
@@ -35,8 +36,11 @@ def generate_dubai_data(n=1000):
         })
         
     df = pd.DataFrame(data)
+    
+    # Ensure the data directory exists
+    os.makedirs('data', exist_ok=True)
     df.to_csv('data/raw_data.csv', index=False)
-    print(f"✅ Generated {n} realistic Dubai property records in data/raw_data.csv")
+    print(f"✅ Generated {n} realistic Dubai property records with 'neighborhood' column.")
 
 if __name__ == "__main__":
     generate_dubai_data()
