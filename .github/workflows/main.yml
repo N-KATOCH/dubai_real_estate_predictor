@@ -8,26 +8,43 @@ jobs:
   train-and-monitor:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
       
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.9'
           
-      - name: Install dependencies
-        run: pip install pandas numpy scikit-learn mlflow dagshub
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # This ensures LightGBM, Matplotlib, and MLflow are all installed
+          pip install -r requirements.txt
         
-      - name: 🚀 Generate Data AND Train Model
+      - name: 🚀 Execute ML Pipeline
         env:
+          # Credentials for DagsHub/MLflow
           MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+          MLFLOW_TRACKING_URI: https://dagshub.com/${{ secrets.DAGSHUB_USERNAME }}/dubai_real_estate_predictor.mlflow
         run: |
-          # Create directory first
+          # 1. Ensure the data directory exists
           mkdir -p data
-          # Run generator
+          
+          # 2. Run the Generator (1,000 realistic rows)
           python src/generate_data.py
-          # Verify file exists before training
+          
+          # 3. Debug: Verify the file exists and check its schema
+          echo "Checking data directory..."
           ls -l data/
-          # Run trainer
+          
+          # 4. Run the LightGBM (Log Transformation) Trainer
           python src/train.py
+
+      - name: 📁 Archive Monitoring Report
+        if: always() # Runs even if training fails
+        uses: actions/upload-artifact@v4
+        with:
+          name: dubai-real-estate-monitoring-report
+          path: reports/data_drift_report.html
