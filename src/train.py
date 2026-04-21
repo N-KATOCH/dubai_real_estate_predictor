@@ -4,63 +4,40 @@ import mlflow
 import mlflow.sklearn
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
-import sys
-import os
+import os, sys
 
-# MLflow Tracking Setup
 if os.getenv("MLFLOW_TRACKING_USERNAME"):
-    tracking_uri = f"https://dagshub.com/{os.getenv('MLFLOW_TRACKING_USERNAME')}/dubai_real_estate_predictor.mlflow"
-    mlflow.set_tracking_uri(tracking_uri)
-else:
-    mlflow.set_tracking_uri("file:./mlruns")
+    mlflow.set_tracking_uri(f"https://dagshub.com/{os.getenv('MLFLOW_TRACKING_USERNAME')}/dubai_real_estate_predictor.mlflow")
 
-def run_training_pipeline(data_path):
-    mlflow.set_experiment("Dubai_Real_Estate_Valuation")
-    
+def run_training_pipeline():
+    data_path = 'data/raw_data.csv'
     if not os.path.exists(data_path):
-        print(f"❌ File not found: {data_path}")
-        return
+        print("❌ File missing at Step 2!")
+        sys.exit(1)
 
+    mlflow.set_experiment("Dubai_Real_Estate_Valuation")
     with mlflow.start_run(run_name="Production_Run_1000_Rows"):
         df = pd.read_csv(data_path)
         
-        # SAFETY CHECK: Verify column exists
-        if 'neighborhood' not in df.columns:
-            print(f"❌ ERROR: 'neighborhood' column missing! Found: {df.columns.tolist()}")
-            sys.exit(1)
-        
-        # 1. Feature Engineering
+        # Encoding
         le = LabelEncoder()
-        df['neighborhood_enc'] = le.fit_transform(df['neighborhood'])
+        df['nb_enc'] = le.fit_transform(df['neighborhood'])
         
-        # 2. Define Features
-        X = df[['size', 'neighborhood_enc']]
+        X = df[['size', 'nb_enc']]
         y = df['price']
         
-        # 3. Train
-        model = RandomForestRegressor(n_estimators=100, random_state=42)
-        model.fit(X, y)
+        model = RandomForestRegressor(n_estimators=50).fit(X, y)
         
-        # 4. Predictions & Metrics
-        predictions = model.predict(X)
-        mape = np.mean(np.abs((y - predictions) / y)) * 100
-        
-        # 5. Log
-        mlflow.log_param("features", "size, neighborhood")
+        # Logging
+        mape = np.mean(np.abs((y - model.predict(X)) / y)) * 100
         mlflow.log_metric("MAPE", mape)
         mlflow.sklearn.log_model(model, "valuation_model")
         
-        # Save results for DagsHub
-        results_df = pd.DataFrame({
-            'Neighborhood': df['neighborhood'],
-            'Size': df['size'],
-            'Actual_Price': y, 
-            'Predicted_Price': predictions
-        })
-        results_df.to_csv("predictions_comparison.csv", index=False)
+        # Results table
+        res = pd.DataFrame({'Neighborhood': df['neighborhood'], 'Actual': y, 'Predicted': model.predict(X)})
+        res.to_csv("predictions_comparison.csv", index=False)
         mlflow.log_artifact("predictions_comparison.csv")
-        
-        print(f"🚀 Model Trained Successfully! MAPE: {mape:.2f}%")
+        print(f"🚀 Success! Accuracy: {100-mape:.2f}%")
 
 if __name__ == "__main__":
-    run_training_pipeline("data/raw_data.csv")
+    run_training_pipeline()
