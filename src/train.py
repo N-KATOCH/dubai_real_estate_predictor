@@ -17,19 +17,27 @@ else:
 def run_training_pipeline(data_path):
     mlflow.set_experiment("Dubai_Real_Estate_Valuation")
     
+    if not os.path.exists(data_path):
+        print(f"❌ File not found: {data_path}")
+        return
+
     with mlflow.start_run(run_name="Production_Run_1000_Rows"):
         df = pd.read_csv(data_path)
         
-        # 1. Feature Engineering: Neighborhood Encoding
-        # This turns 'Dubai Marina' into 1, 'Downtown' into 2, etc.
+        # SAFETY CHECK: Verify column exists
+        if 'neighborhood' not in df.columns:
+            print(f"❌ ERROR: 'neighborhood' column missing! Found: {df.columns.tolist()}")
+            sys.exit(1)
+        
+        # 1. Feature Engineering
         le = LabelEncoder()
         df['neighborhood_enc'] = le.fit_transform(df['neighborhood'])
         
-        # 2. Define Features (Size + Neighborhood)
+        # 2. Define Features
         X = df[['size', 'neighborhood_enc']]
         y = df['price']
         
-        # 3. Train a more robust model
+        # 3. Train
         model = RandomForestRegressor(n_estimators=100, random_state=42)
         model.fit(X, y)
         
@@ -37,7 +45,7 @@ def run_training_pipeline(data_path):
         predictions = model.predict(X)
         mape = np.mean(np.abs((y - predictions) / y)) * 100
         
-        # 5. Log Everything
+        # 5. Log
         mlflow.log_param("features", "size, neighborhood")
         mlflow.log_metric("MAPE", mape)
         mlflow.sklearn.log_model(model, "valuation_model")
@@ -52,7 +60,7 @@ def run_training_pipeline(data_path):
         results_df.to_csv("predictions_comparison.csv", index=False)
         mlflow.log_artifact("predictions_comparison.csv")
         
-        print(f"🚀 Model Trained on {len(df)} rows. Accuracy (MAPE): {100-mape:.2f}%")
+        print(f"🚀 Model Trained Successfully! MAPE: {mape:.2f}%")
 
 if __name__ == "__main__":
     run_training_pipeline("data/raw_data.csv")
