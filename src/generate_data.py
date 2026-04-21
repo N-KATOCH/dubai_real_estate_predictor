@@ -5,7 +5,6 @@ import os
 def generate_dubai_data(n=1000):
     np.random.seed(42)
     
-    # Define neighborhoods
     neighborhoods = {
         'Dubai Marina': 1600,
         'Downtown Dubai': 2200,
@@ -33,16 +32,16 @@ def generate_dubai_data(n=1000):
         
     df = pd.DataFrame(data)
     
-    # 🛠️ STRONGER PATHING: Ensure the directory exists relative to this script
-    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    data_dir = os.path.join(base_path, 'data')
+    # Force the path to be the absolute project root/data/raw_data.csv
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    data_dir = os.path.join(project_root, 'data')
     os.makedirs(data_dir, exist_ok=True)
     
     file_path = os.path.join(data_dir, 'raw_data.csv')
     df.to_csv(file_path, index=False)
     
-    print(f"✅ SUCCESSFULLY generated {n} rows at: {file_path}")
-    print(f"📊 Columns created: {df.columns.tolist()}")
+    print(f"🔥 GENERATOR SUCCESS: Created {len(df)} rows at {file_path}")
+    print(f"📊 New Columns: {df.columns.tolist()}")
 
 if __name__ == "__main__":
     generate_dubai_data()
