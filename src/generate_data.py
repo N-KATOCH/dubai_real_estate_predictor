@@ -5,7 +5,7 @@ import os
 def generate_dubai_data(n=1000):
     np.random.seed(42)
     
-    # Neighborhoods and their approx price per sqft (AED)
+    # Define neighborhoods
     neighborhoods = {
         'Dubai Marina': 1600,
         'Downtown Dubai': 2200,
@@ -19,11 +19,7 @@ def generate_dubai_data(n=1000):
     for i in range(n):
         nb = np.random.choice(list(neighborhoods.keys()))
         avg_psf = neighborhoods[nb]
-        
-        # Random size between 500 and 5000 sqft
         size = np.random.randint(500, 5000)
-        
-        # Price = (Size * Base PSF) + some random market noise
         noise = np.random.normal(0, 0.1) 
         price = int(size * avg_psf * (1 + noise))
         
@@ -37,10 +33,16 @@ def generate_dubai_data(n=1000):
         
     df = pd.DataFrame(data)
     
-    # Ensure the data directory exists
-    os.makedirs('data', exist_ok=True)
-    df.to_csv('data/raw_data.csv', index=False)
-    print(f"✅ Generated {n} realistic Dubai property records with 'neighborhood' column.")
+    # 🛠️ STRONGER PATHING: Ensure the directory exists relative to this script
+    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    data_dir = os.path.join(base_path, 'data')
+    os.makedirs(data_dir, exist_ok=True)
+    
+    file_path = os.path.join(data_dir, 'raw_data.csv')
+    df.to_csv(file_path, index=False)
+    
+    print(f"✅ SUCCESSFULLY generated {n} rows at: {file_path}")
+    print(f"📊 Columns created: {df.columns.tolist()}")
 
 if __name__ == "__main__":
     generate_dubai_data()
